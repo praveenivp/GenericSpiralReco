@@ -22,6 +22,7 @@ namespace Gadgetron{
       GADGET_PROPERTY(export_reference_image, bool, "export coil combined image from reference data", true);
 
       GADGET_PROPERTY(grad_delay, float, "additional gradient delay in us", 0);
+      GADGET_PROPERTY(ADC_shift, float, "additional gradient delay in us", 0);
       GADGET_PROPERTY(calc_3D_traj, bool, "flag to calculate 3D kspace location", true);
 
 

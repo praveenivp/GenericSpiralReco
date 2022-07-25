@@ -30,6 +30,7 @@ namespace Gadgetron
         }
 
         SpiralTraj = Spiral::spiraltraj_gadgetron(MeasHeader);
+        SpiralTraj.setDelayParams(grad_delay.value(),ADC_shift.value());
 
         return GADGET_OK;
     }
@@ -48,6 +49,7 @@ namespace Gadgetron
             IsmrmrdReconBit &rbit = *it;
             IsmrmrdDataBuffered &dbuff = it->data_;
 
+            
             // trajectories are -0.5 to 0.5 scaled  with dim (Grad_Axis=2,ADC_points, Interleaves/E1)
             auto traj = SpiralTraj.calculate_trajectories_and_weight(dbuff.headers_[0].number_of_samples);
             GDEBUG("done calculating trajectories\n");
@@ -211,7 +213,6 @@ namespace Gadgetron
                 }
             }
         }
-        GDEBUG("Sucssfully copied new data and headers\n");
 
                     auto traj_dim=traj.get_size(0);
                     float* ToPtr_traj= &new_traj[0];
@@ -233,8 +234,6 @@ namespace Gadgetron
                     }
                             
 
-                        
-        GDEBUG("Sucssfully copied new traj and density\n");
         dbuff.data_=new_data;
         dbuff.density_=new_dcw;
         dbuff.headers_=new_headers;

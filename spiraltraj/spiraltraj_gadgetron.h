@@ -40,6 +40,7 @@ namespace Spiral {
         double Resolution_mm;
         double ADCShift_us;
         double GradDelay_us;
+        double SpiralOS;
         vdspiral m_SpiralTraj;
 
         hoNDArray<floatd2> correct_gradients(const hoNDArray<floatd2> &gradients, float grad_samp_us,

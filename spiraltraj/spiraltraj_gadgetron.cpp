@@ -32,7 +32,7 @@ namespace Gadgetron{
                 Tsamp_ns_ = userparam_long.at("DwellTime_ns");
                 Nints_ = userparam_long.at("interleaves");
                 GradDelay_us=3.85;
-
+                SpiralOS=userparam_double.at("SpiralOS");
 
                 gmax_ = userparam_double.at("MaxGradient_mT_per_m");
                 smax_ = userparam_double.at("Slewmax_mT_m_ms");
@@ -55,6 +55,7 @@ namespace Gadgetron{
             GDEBUG("krmax (1/m):                   %f\n", krmax_);
             GDEBUG("Resolution_mm:                   %f\n",Resolution_mm);
             GDEBUG("SpiralType:                   %d\n", Spiral_type);
+            GDEBUG("SpiralOS:                   %f\n", SpiralOS);
             GDEBUG("GIRF kernel:             %d\n", bool(this->girf_kernel));
 
         }
@@ -79,7 +80,14 @@ namespace Gadgetron{
 
             int nfov = 4;
 		    std::vector<double> v_fov({fov_,fov_,fov_,fov_});
-            std::vector<double> v_radius({0,0.15,0.2,1});
+            if(SpiralOS>1.0) 
+            {
+                v_fov[0]*=SpiralOS;
+                v_fov[1]*=SpiralOS;
+                GDEBUG("center FOV over sampled:                    %f\n", v_fov[1]);
+            }
+
+            std::vector<double> v_radius({0,0.18,0.25,1});
 		
             double dGradMaxAmpl = gmax_;
             double gammabar = 42.5766; //kHz/mT
@@ -133,23 +141,17 @@ namespace Gadgetron{
             Gadgetron::permute(trajectories2,trajectories,dim_order);
 
 
-
-        //    for(uint16_t i=0;i<(nsamples*2);i+=2)
-        //    {
-        //     trajectories[i]=ky[i/2];
-        //     trajectories[i+1]=kx[i/2];
-        //    }
            
-            GDEBUG("writing trajectories to text  files: /tmp/gadgetron/Trajectories.txt \n");
-            std::ofstream myfile2;
-            myfile2.open ("/tmp/gadgetron/Trajectories.txt",std::ofstream::trunc);
-            myfile2 <<"kx [1/m]          "<<" ky[1/m]         "<<"DCF        "<<'\n';
-            for(auto i=0;i<nsamples*2;i+=2){
-                myfile2 <<trajectories[i] <<"  "<<trajectories[i+1] <<"  "<<dcf[i/2]<<'\n';
-                if((i+1)%ADCsamples==0) myfile2 <<"\n\n";
-            }
-            myfile2<<std::flush;
-            myfile2.close();
+            // GDEBUG("writing trajectories to text  files: /tmp/gadgetron/Trajectories.txt \n");
+            // std::ofstream myfile2;
+            // myfile2.open ("/tmp/gadgetron/Trajectories.txt",std::ofstream::trunc);
+            // myfile2 <<"kx [1/m]          "<<" ky[1/m]         "<<"DCF        "<<'\n';
+            // for(auto i=0;i<nsamples*2;i+=2){
+            //     myfile2 <<trajectories[i] <<"  "<<trajectories[i+1] <<"  "<<dcf[i/2]<<'\n';
+            //     if((i+1)%ADCsamples==0) myfile2 <<"\n\n";
+            // }
+            // myfile2<<std::flush;
+            // myfile2.close();
              
            
 

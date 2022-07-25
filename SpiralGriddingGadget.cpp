@@ -76,13 +76,6 @@ namespace Gadgetron
             auto &dcw = dbuff.density_.value();
             dcw.reshape(-1);
 
-            std::stringstream ss;
-            ss << "dcw \n";
-            dcw.print(ss);
-            ss << "data \n";
-            data.print(ss);
-            GDEBUG_STREAM(ss.str());
-
             // Create an image array message
             GadgetContainerMessage<IsmrmrdImageArray> *cm1 =
                 new GadgetContainerMessage<IsmrmrdImageArray>();
@@ -121,7 +114,7 @@ namespace Gadgetron
                     for (uint16_t n = 0; n < N; n++)
                     {
 
-                                                //do pics
+                        if(perform_pics.value())                        //do pics
                         {
                              std::string traj_filename = output_folder.value() + "Traj";
                             std::string data_filename = output_folder.value() + "coil_data";
@@ -202,6 +195,7 @@ namespace Gadgetron
                         imarray.headers_(n, s, loc).patient_table_position[2] = acqhdr.patient_table_position[2];
                         imarray.headers_(n, s, loc).data_type = ISMRMRD::ISMRMRD_CXFLOAT;
                         imarray.headers_(n, s, loc).image_index = ++image_counter_;
+                        imarray.headers_(n, s, loc).image_series_index=1;
 
                         // Grab a wrapper around the relevant chunk of data [E0,E1,E2,CHA] for this loc, n, and s
                         // Each chunk will be [E0,E1,E2,CHA] big
@@ -219,15 +213,13 @@ namespace Gadgetron
 
                         coil_images.reshape(matrix_size.x, matrix_size.y, E2, CHA);
 
-                        if (E2 > 2) // do 1D-fft along E2 if 3D acquistion
+                        if (E2 > 1) // do 1D-fft along E2 if 3D acquistion
                         {
-                            coil_images = permute(coil_images, {3, 0, 1, 2});
+                            coil_images = permute(coil_images, {2, 0, 1, 3});
                             hoNDFFT<float>::instance()->ifft1c(coil_images);
-                            coil_images = permute(coil_images, {1, 2, 0, 3});
+                            coil_images = permute(coil_images, {1, 2, 0,3});
                         }
 
-                        // Do the FFTs in place
-                        hoNDFFT<float>::instance()->ifft3c(chunk);
 
                         // Square root of the sum of squares
                         // Each image will be [E0,E1,E2,1] big
