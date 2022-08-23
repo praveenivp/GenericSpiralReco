@@ -7,8 +7,7 @@
 #include <gadgetron/log.h>
 #include <gadgetron/Gadget.h>
 #include <gadgetron/mri_core_utility.h>
-#include "armadillo"
-#include <gadgetron/mri_core_girf_correction.h>
+//#include <gadgetron/mri_core_girf_correction.h>
 #include <fstream>
 
 
