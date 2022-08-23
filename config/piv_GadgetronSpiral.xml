@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="utf-8"?>
+<gadgetronStreamConfiguration xsi:schemaLocation="http://gadgetron.sf.net/gadgetron gadgetron.xsd"
+        xmlns="http://gadgetron.sf.net/gadgetron"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+
+    <!--
+        Gadgetron generic recon chain for 2D and 3D cartesian sampling
+        Triggered by repetition
+        Recon N is contrast and S is set
+        Author: Hui Xue
+        National Heart, Lung and Blood Institute, National Institutes of Health
+        10 Center Drive, Bethesda, MD 20814, USA
+        Email: hui.xue@nih.gov
+    -->
+
+    <!-- reader -->
+    <reader><slot>1008</slot><dll>gadgetron_mricore</dll><classname>GadgetIsmrmrdAcquisitionMessageReader</classname></reader>
+    <reader><slot>1026</slot><dll>gadgetron_mricore</dll><classname>GadgetIsmrmrdWaveformMessageReader</classname></reader>
+
+    <!-- writer -->
+    <writer><slot>1022</slot><dll>gadgetron_mricore</dll><classname>MRIImageWriter</classname></writer>
+
+    <!-- Noise prewhitening -->
+    <gadget><name>NoiseAdjust</name><dll>gadgetron_mricore</dll><classname>NoiseAdjustGadget</classname>
+    <property><name>pass_nonconformant_data</name><value>false</value></property>
+    </gadget>
+
+    <!-- RO asymmetric echo handling -->
+    <gadget><name>AsymmetricEcho</name><dll>gadgetron_mricore</dll><classname>AsymmetricEchoAdjustROGadget</classname></gadget>
+
+    <!-- RO oversampling removal -->
+    <gadget><name>RemoveROOversampling</name><dll>gadgetron_mricore</dll><classname>RemoveROOversamplingGadget</classname></gadget>
+
+    <!-- Data accumulation and trigger gadget -->
+    <gadget>
+        <name>AccTrig</name>
+        <dll>gadgetron_mricore</dll>
+        <classname>AcquisitionAccumulateTriggerGadget</classname>
+        <property><name>trigger_dimension</name><value>repetition</value></property>
+        <property><name>sorting_dimension</name><value></value></property>
+    </gadget>
+
+   
+    <gadget>
+        <name>BucketToBuffer</name>
+        <dll>refFFT</dll>
+        <classname>MyBucketToBufferGadget</classname>
+        <property><name>N_dimension</name><value>repetition</value></property>
+        <property><name>S_dimension</name><value>average</value></property>
+        <property><name>split_slices</name><value>false</value></property>
+        <property><name>ignore_segment</name><value>true</value></property>
+        <property><name>verbose</name><value>true</value></property>
+    </gadget>
+
+
+    <gadget>
+        <name>RemoveRefOSGadget</name>
+        <dll>refFFT</dll>
+        <classname>RemoveRefOSGadget</classname>
+    </gadget>
+
+    <gadget>
+        <name>getCoilSens</name>
+        <dll>refFFT</dll>
+        <classname>RefRecoGadget</classname>
+        <property><name>output_folder</name><value>/media/sf_VM_Shared/gadgetronstuff/</value></property>
+        <property><name>calc_csm</name><value>true</value></property>
+        <property><name>export_reference_image</name><value>true</value></property>
+    </gadget>
+
+    
+
+     <gadget>
+        <name>AddTraj</name>
+        <dll>refFFT</dll>
+        <classname>AddTrajInfoGadget</classname>
+        <property><name>grad_delay</name><value>2.0</value></property>
+        <property><name>calc_3D_traj</name><value>true</value></property>
+    </gadget>
+
+   
+    <gadget>
+        <name>spiralGridding</name>
+        <dll>refFFT</dll>
+        <classname>SpiralGriddingGadget</classname>
+        <property><name>kernel_width</name><value>5.5</value></property>
+        <property><name>gridding_os</name><value>1.5</value></property>
+          <property><name>use_calculated_csm</name><value>true</value></property>
+<property><name>perform_pics</name><value>true</value></property>
+        <property><name>output_folder</name><value>/media/sf_VM_Shared/gadgetronstuff/</value></property>
+    </gadget>
+
+
+		 <gadget>
+		  <classname>ExtractGadget</classname>
+		  <property><name>extract_magnitude</name><value>true</value></property>
+		  <property><name>extract_real</name><value>false</value></property>
+		  <dll>gadgetron_mricore</dll>
+		</gadget>
+
+		<gadget>
+			<name>aUtoScaling</name>
+			<dll>gadgetron_mricore</dll>
+			<classname>AutoScaleGadget</classname>
+		</gadget> 
+
+		<!-- ImageArray to images -->
+		<gadget>
+			<name>ImageArraySplit</name>
+			<dll>gadgetron_mricore</dll>
+			<classname>ImageArraySplitGadget</classname>
+		</gadget>
+	   
+		<!-- after recon processing -->
+		<gadget>
+			<name>ComplexToFloatAttrib</name>
+			<dll>gadgetron_mricore</dll>
+			<classname>ComplexToFloatGadget</classname>
+		</gadget>
+	
+		<gadget>
+			<name>FloatToShortAttrib</name>
+			<dll>gadgetron_mricore</dll>
+			<classname>FloatToUShortGadget</classname>
+
+			<property><name>max_intensity</name><value>4095</value></property>
+			<property><name>min_intensity</name><value>0</value></property>
+			<property><name>intensity_offset</name><value>0</value></property>
+		</gadget>
+
+		<gadget>
+			<name>ImageFinish</name>
+			<dll>gadgetron_mricore</dll>
+			<classname>ImageFinishGadget</classname>
+		</gadget>
+
+
+
+
+
+</gadgetronStreamConfiguration>
+
+<!--
+
+
+    <!-- Image Array Scaling -->
+    <gadget>
+        <name>Scaling</name>
+        <dll>gadgetron_mricore</dll>
+        <classname>GenericReconImageArrayScalingGadget</classname>
+
+        <!-- parameters for debug and timing -->
+        <property><name>perform_timing</name><value>false</value></property>
+        <property><name>verbose</name><value>false</value></property>
+
+        <property><name>min_intensity_value</name><value>64</value></property>
+        <property><name>max_intensity_value</name><value>4095</value></property>
+        <property><name>scalingFactor</name><value>1.0</value></property>
+        <property><name>use_constant_scalingFactor</name><value>true</value></property>
+        <property><name>auto_scaling_only_once</name><value>true</value></property>
+        <property><name>scalingFactor_dedicated</name><value>100.0</value></property>
+    </gadget>
+
+    <!-- ImageArray to images -->
+    <gadget>
+        <name>ImageArraySplit</name>
+        <dll>gadgetron_mricore</dll>
+        <classname>ImageArraySplitGadget</classname>
+    </gadget>
+
+    <!-- after recon processing -->
+    <gadget>
+        <name>ComplexToFloatAttrib</name>
+        <dll>gadgetron_mricore</dll>
+        <classname>ComplexToFloatGadget</classname>
+    </gadget>
+
+    <gadget>
+        <name>FloatToShortAttrib</name>
+        <dll>gadgetron_mricore</dll>
+        <classname>FloatToUShortGadget</classname>
+
+        <property><name>max_intensity</name><value>32767</value></property>
+        <property><name>min_intensity</name><value>0</value></property>
+        <property><name>intensity_offset</name><value>0</value></property>
+    </gadget>
+
+    <gadget>
+        <name>ImageFinish</name>
+        <dll>gadgetron_mricore</dll>
+        <classname>ImageFinishGadget</classname>
+    </gadget>
+-->
