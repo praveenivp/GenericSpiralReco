@@ -59,19 +59,21 @@ namespace Gadgetron
             size_t S = data.get_size(5);
             size_t LOC = data.get_size(6);
 
-            // CFL_IO::hoNDArray2CFL<complex_float_t>("/media/sf_VM_Shared/gadgetronstuff/sdata",data);
-
             matrix_size = header.encoding.front().reconSpace.matrixSize;
             hoNFFT_plan<float, 2> nufft = hoNFFT_plan(vector_td<size_t, 2>(matrix_size.x, matrix_size.y), gridding_os.value(), kernel_width.value());
             // NFFT_prep_mode mode=NFFT_prep_mode::NC2C;
 
-            auto &traj = dbuff.trajectory_.value();
-            Gadgetron::hoNDArray<floatd2> trajectory(traj.get_size(1) * traj.get_size(2));
-            for (uint32_t i = 0; i < E0 * E1 * traj.get_size(0); i += traj.get_size(0))
+            if (!perform_pics.value())
             {
-                trajectory[i / traj.get_size(0)] = vector_td<float, 2>(traj[i], traj[i + 1]);
+
+                auto &traj = dbuff.trajectory_.value();
+                Gadgetron::hoNDArray<floatd2> trajectory(traj.get_size(1) * traj.get_size(2));
+                for (uint32_t i = 0; i < E0 * E1 * traj.get_size(0); i += traj.get_size(0))
+                {
+                    trajectory[i / traj.get_size(0)] = vector_td<float, 2>(traj[i], traj[i + 1]);
+                }
+                nufft.preprocess(trajectory, NFFT_prep_mode::NC2C);
             }
-            nufft.preprocess(trajectory, NFFT_prep_mode::NC2C);
 
             auto &dcw = dbuff.density_.value();
             dcw.reshape(-1);
@@ -102,6 +104,11 @@ namespace Gadgetron
             header_dims[2] = LOC;
             imarray.headers_.create(header_dims);
 
+            std::vector<size_t> img_dims(3);
+            img_dims[0] = matrix_size.x;
+            img_dims[1] = matrix_size.y;
+            img_dims[2] = matrix_size.z;
+
             // We will not add any meta data
             // so skip the meta_ part
 
@@ -114,47 +121,6 @@ namespace Gadgetron
                     for (uint16_t n = 0; n < N; n++)
                     {
 
-                        if(perform_pics.value())                        //do pics
-                        {
-                             std::string traj_filename = output_folder.value() + "Traj";
-                            std::string data_filename = output_folder.value() + "coil_data";
-
-                            
-                            auto & traj_unscaled=dbuff.trajectory_.value();
-                            hoNDArray<complex_float_t> traj_scaled=hoNDArray<complex_float_t>(traj_unscaled.get_size(0),traj_unscaled.get_size(1),traj_unscaled.get_size(2),traj_unscaled.get_size(3));
-                            
-                            auto mat_sz=header.encoding[0].reconSpace.matrixSize;
-                            for (uint32_t i=0; i< E0*E1*E2*traj_scaled.get_size(0);i+=3)
-                            {
-                                traj_scaled[ i ] .real(traj_unscaled[i]*static_cast<float>( mat_sz.x));
-                                traj_scaled[i+1].real(traj_unscaled[i+1]*static_cast<float>( mat_sz.y));
-                                traj_scaled[i+2].real(traj_unscaled[i+2]*static_cast<float>( mat_sz.z));
-                            }
-                           
-                            traj_scaled.reshape(3,E0,E1*E2);
-                            CFL_IO2::hoNDArray2CFL2<complex_float_t>(traj_filename, traj_scaled);
-
-                                                    std::vector<size_t> chunk_dims2(5);
-                         chunk_dims2[0] = 1;
-                        chunk_dims2[1] = dbuff.data_.get_size(0);
-                        chunk_dims2[2] = dbuff.data_.get_size(1)*dbuff.data_.get_size(2);
-                        chunk_dims2[3] = CHA;
-                        chunk_dims2[4] = 1;
-                     
-                             hoNDArray<std::complex<float>> chunk2 = hoNDArray<std::complex<float>>(chunk_dims2, &dbuff.data_(0, 0, 0, 0, n, s, loc));
-                             
-
-                         
-                            CFL_IO2::hoNDArray2CFL2<complex_float_t>(data_filename, chunk2);
-
-                            // std::stringstream ss;
-                            // ss.clear();
-                            // //ss << "bart ecalib -k " << kernel_size.value() << " -r " << calib_size.value() << " -m " << sens_maps.value() << " ";
-                            // ss << calib_filename << " " << sens_filename << " ";
-                            // std::string bart_cmd = ss.str();
-                            // GDEBUG_STREAM("Executing : " << bart_cmd.c_str());
-                            // std::system(bart_cmd.c_str());
-                        }
 
 
                         // Set some information into the image header
@@ -195,65 +161,132 @@ namespace Gadgetron
                         imarray.headers_(n, s, loc).patient_table_position[2] = acqhdr.patient_table_position[2];
                         imarray.headers_(n, s, loc).data_type = ISMRMRD::ISMRMRD_CXFLOAT;
                         imarray.headers_(n, s, loc).image_index = ++image_counter_;
-                        imarray.headers_(n, s, loc).image_series_index=1;
+                        imarray.headers_(n, s, loc).image_series_index = 1;
 
-                        // Grab a wrapper around the relevant chunk of data [E0,E1,E2,CHA] for this loc, n, and s
-                        // Each chunk will be [E0,E1,E2,CHA] big
-                        std::vector<size_t> chunk_dims(4);
-                        chunk_dims[0] = dbuff.data_.get_size(0);
-                        chunk_dims[1] = dbuff.data_.get_size(1);
-                        chunk_dims[2] = dbuff.data_.get_size(2);
-                        chunk_dims[3] = CHA;
-
-                        hoNDArray<std::complex<float>> chunk = hoNDArray<std::complex<float>>(chunk_dims, &dbuff.data_(0, 0, 0, 0, n, s, loc));
-
-                        chunk.reshape(E0 * E1, E2 * CHA);
-                        hoNDArray<std::complex<float>> coil_images(matrix_size.x, matrix_size.y, E2 * CHA);
-                        nufft.compute(chunk, coil_images, &dcw, NFFT_comp_mode::BACKWARDS_NC2C);
-
-                        coil_images.reshape(matrix_size.x, matrix_size.y, E2, CHA);
-
-                        if (E2 > 1) // do 1D-fft along E2 if 3D acquistion
+                        if (perform_pics.value()) // do pics
                         {
-                            coil_images = permute(coil_images, {2, 0, 1, 3});
-                            hoNDFFT<float>::instance()->ifft1c(coil_images);
-                            coil_images = permute(coil_images, {1, 2, 0,3});
-                        }
+                            std::string traj_filename = output_folder.value() + "Traj";
+                            std::string DCF_filename = output_folder.value() + "DCF";
+                            std::string data_filename = output_folder.value() + "coil_data";
 
+                            // Export Trajectory
+                            auto &traj_unscaled = dbuff.trajectory_.value();
+                            hoNDArray<complex_float_t> traj_scaled = hoNDArray<complex_float_t>(traj_unscaled.get_size(0), traj_unscaled.get_size(1), traj_unscaled.get_size(2), traj_unscaled.get_size(3));
 
-                        // Square root of the sum of squares
-                        // Each image will be [E0,E1,E2,1] big
-                        std::vector<size_t> img_dims(3);
-                        img_dims[0] = matrix_size.x;
-                        img_dims[1] = matrix_size.y;
-                        img_dims[2] = matrix_size.z;
-                        hoNDArray<std::complex<float>> output = hoNDArray<std::complex<float>>(img_dims, &imarray.data_(0, 0, 0, 0, n, s, loc));
-                        // Zero out the output
-                        clear(output);
-
-
-                        if (use_calculated_csm.value() && it->ref_.has_value()) // use coil sens from RefRecoGadget()
-                        {                                                       // adpative coil combine
-                            hoNDArray<complex_float_t> &csm = it->ref_.value().data_;
-                            multiplyConj(coil_images, csm, coil_images);
-                            // Add up
-                            for (size_t c = 0; c < CHA; c++)
+                            auto mat_sz = header.encoding[0].reconSpace.matrixSize;
+                            for (uint32_t i = 0; i < E0 * E1 * E2 * traj_scaled.get_size(0); i += 3)
                             {
-                                output += hoNDArray<std::complex<float>>(img_dims, &coil_images(0, 0, 0, c));
+                                traj_scaled[i].real(traj_unscaled[i] * static_cast<float>(mat_sz.x));
+                                traj_scaled[i + 1].real(traj_unscaled[i + 1] * static_cast<float>(mat_sz.y));
+                                traj_scaled[i + 2].real(traj_unscaled[i + 2] * static_cast<float>(mat_sz.z));
                             }
-                        }
-                        else // sum of squares
+
+                            traj_scaled.reshape(3, E0, E1 * E2);
+                            CFL_IO2::hoNDArray2CFL2<complex_float_t>(traj_filename, traj_scaled);
+
+                            // export density compensation
+                            auto &dcf = dbuff.density_.value();
+                            hoNDArray<complex_float_t> h0ND_dcf = hoNDArray<complex_float_t>(1, E0, E1 * E2);
+                            for (uint32_t i = 0; i < E0 * E1 * E2; i++)
+                            {
+                                h0ND_dcf[i].real(std::sqrt(dcf[i]));
+                            }
+                            CFL_IO2::hoNDArray2CFL2<complex_float_t>(DCF_filename, h0ND_dcf);
+
+                            // export Coildata
+
+                            std::vector<size_t> chunk_dims2(5);
+                            chunk_dims2[0] = 1;
+                            chunk_dims2[1] = dbuff.data_.get_size(0);
+                            chunk_dims2[2] = dbuff.data_.get_size(1) * dbuff.data_.get_size(2);
+                            chunk_dims2[3] = CHA;
+                            chunk_dims2[4] = 1;
+
+                            hoNDArray<std::complex<float>> chunk2 = hoNDArray<std::complex<float>>(chunk_dims2, &dbuff.data_(0, 0, 0, 0, n, s, loc));
+
+                            CFL_IO2::hoNDArray2CFL2<complex_float_t>(data_filename, chunk2);
+
+                            // do bart pics
+
+                            std::string sens_filename = output_folder.value() + "sensCFL"; // from RefRecoGadget
+                            std::string img_filename = output_folder.value() + "pics_reco";
+
+                            // bart pics -i 10 -l2 -r 1e-2 -p DCF  -t Traj coil_data sensCFL out1
+                            std::stringstream ss;
+                            ss.clear();
+                            ss << "bart pics  " << pics_settings.value() << " ";
+                            ss << "-p"
+                               << " " << DCF_filename << " ";
+                            ss << "-t"
+                               << " " << traj_filename << " ";
+                            ss << data_filename << " " << sens_filename << " " << img_filename;
+                            std::string bart_cmd = ss.str();
+                            GDEBUG_STREAM("Executing : " << bart_cmd.c_str());
+                            std::system(bart_cmd.c_str());
+                            auto pics_im = CFL_IO2::CFL2hoNDARRAY2<std::complex<float>>(img_filename);
+
+                            hoNDArray<std::complex<float>> output = hoNDArray<std::complex<float>>(img_dims, &imarray.data_(0, 0, 0, 0, n, s, loc));
+                            uint32_t nVoxels = (img_dims[2] > 0) ? img_dims[0] * img_dims[1] * img_dims[2] : img_dims[0] * img_dims[1];
+                            std::copy(pics_im.begin(), pics_im.begin() + nVoxels, output.begin());
+
+                            output*=pics_scale_factor.value(); //auto scaling gadget sucks!
+
+                        } 
+                        else // do gridding and coil combination
                         {
-                            // // Compute d* d in place
-                            multiplyConj(coil_images, coil_images, coil_images);
-                            // Add up
-                            for (size_t c = 0; c < CHA; c++)
+
+                            // Grab a wrapper around the relevant chunk of data [E0,E1,E2,CHA] for this loc, n, and s
+                            // Each chunk will be [E0,E1,E2,CHA] big
+                            std::vector<size_t> chunk_dims(4);
+                            chunk_dims[0] = dbuff.data_.get_size(0);
+                            chunk_dims[1] = dbuff.data_.get_size(1);
+                            chunk_dims[2] = dbuff.data_.get_size(2);
+                            chunk_dims[3] = CHA;
+
+                            hoNDArray<std::complex<float>> chunk = hoNDArray<std::complex<float>>(chunk_dims, &dbuff.data_(0, 0, 0, 0, n, s, loc));
+
+                            chunk.reshape(E0 * E1, E2 * CHA);
+                            hoNDArray<std::complex<float>> coil_images(matrix_size.x, matrix_size.y, E2 * CHA);
+                            nufft.compute(chunk, coil_images, &dcw, NFFT_comp_mode::BACKWARDS_NC2C);
+
+                            coil_images.reshape(matrix_size.x, matrix_size.y, E2, CHA);
+
+                            if (E2 > 1) // do 1D-fft along E2 if 3D acquistion
                             {
-                                output += hoNDArray<std::complex<float>>(img_dims, &coil_images(0, 0, 0, c));
+                                coil_images = permute(coil_images, {2, 0, 1, 3});
+                                hoNDFFT<float>::instance()->ifft1c(coil_images);
+                                coil_images = permute(coil_images, {1, 2, 0, 3});
                             }
-                            // // Take the square root in place
-                            sqrt_inplace(&output);
-                        }
+
+                            // Square root of the sum of squares
+                            // Each image will be [E0,E1,E2,1] big
+                            hoNDArray<std::complex<float>> output = hoNDArray<std::complex<float>>(img_dims, &imarray.data_(0, 0, 0, 0, n, s, loc));
+                            // Zero out the output
+                            clear(output);
+
+                            if (use_calculated_csm.value() && it->ref_.has_value()) // use coil sens from RefRecoGadget()
+                            {                                                       // adpative coil combine
+                                hoNDArray<complex_float_t> &csm = it->ref_.value().data_;
+                                multiplyConj(coil_images, csm, coil_images);
+                                // Add up
+                                for (size_t c = 0; c < CHA; c++)
+                                {
+                                    output += hoNDArray<std::complex<float>>(img_dims, &coil_images(0, 0, 0, c));
+                                }
+                            }
+                            else // sum of squares
+                            {
+                                // // Compute d* d in place
+                                multiplyConj(coil_images, coil_images, coil_images);
+                                // Add up
+                                for (size_t c = 0; c < CHA; c++)
+                                {
+                                    output += hoNDArray<std::complex<float>>(img_dims, &coil_images(0, 0, 0, c));
+                                }
+                                // // Take the square root in place
+                                sqrt_inplace(&output);
+                            } // sum of squares
+                        }     // do pics else
                     }
                 }
             }

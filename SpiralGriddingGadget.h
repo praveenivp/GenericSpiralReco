@@ -27,12 +27,13 @@ namespace Gadgetron{
       GADGET_PROPERTY(kernel_width,float,"Kernel width for NFFT", 5.5);
 		  GADGET_PROPERTY(gridding_os,float,"Oversampling used in NFFT", 1.5);
 
-		GADGET_PROPERTY(iterate,bool,"Iterate instead of using weights", false);
-		GADGET_PROPERTY(iteration_max,int,"Maximum number of iterations", 5);
-		GADGET_PROPERTY(iteration_tol,float,"Iteration tolerance", 1e-5);
-    GADGET_PROPERTY(output_folder, std::string, "path of output folder for traj and pics", "/tmp/gadgetron/");
 
-		GADGET_PROPERTY(perform_pics, bool,"Perform bart pics recon", false);
+    GADGET_PROPERTY(output_folder, std::string, "path of output folder for traj and pics", "/tmp/gadgetron/");
+    GADGET_PROPERTY(perform_pics, bool,"Perform bart pics recon", false);
+    GADGET_PROPERTY(pics_settings, std::string, "setting for pics toool", "-i 10 -l2 -r 1e-2");
+    GADGET_PROPERTY(pics_scale_factor,float,"additional scaling of output image" , 1e3);
+
+		
 	//	GADGET_PROPERTY(image_series,int,"Image Series",1);
 
 
