@@ -27,9 +27,9 @@ namespace Gadgetron
             if (!rbit.ref_)
                 continue;
 
-            std::array<uint16_t, 3> reco_matSz = rbit.data_.sampling_.recon_matrix_;
+            std::array<uint16_t, 3> encode_matSz = rbit.data_.sampling_.encoded_matrix_;
 
-            Gadgetron::uint64d4 ref_dim{reco_matSz[0], reco_matSz[1], reco_matSz[2], dbuff.data_.get_size(3)};
+            Gadgetron::uint64d4 ref_dim{encode_matSz[0], encode_matSz[1], encode_matSz[2], dbuff.data_.get_size(3)};
             auto buff_pad = hoNDArray<complex_float_t>(ref_dim[0], ref_dim[1], ref_dim[2], ref_dim[3]);
             auto buff_pad2 = hoNDArray<complex_float_t>(ref_dim[0], ref_dim[1], ref_dim[2], ref_dim[3]);
 
@@ -126,9 +126,9 @@ namespace Gadgetron
                             imarray.headers_(n, s, loc).matrix_size[0] = E0;
                             imarray.headers_(n, s, loc).matrix_size[1] = E1;
                             imarray.headers_(n, s, loc).matrix_size[2] = E2;
-                            imarray.headers_(n, s, loc).field_of_view[0] = dbuff.sampling_.recon_FOV_[0];
-                            imarray.headers_(n, s, loc).field_of_view[1] = dbuff.sampling_.recon_FOV_[1];
-                            imarray.headers_(n, s, loc).field_of_view[2] = dbuff.sampling_.recon_FOV_[2];
+                            imarray.headers_(n, s, loc).field_of_view[0] = dbuff.sampling_.encoded_FOV_[0];
+                            imarray.headers_(n, s, loc).field_of_view[1] = dbuff.sampling_.encoded_FOV_[1];
+                            imarray.headers_(n, s, loc).field_of_view[2] = dbuff.sampling_.encoded_FOV_[2];
                             imarray.headers_(n, s, loc).channels = 1;
                             imarray.headers_(n, s, loc).average = acqhdr.idx.average;
                             imarray.headers_(n, s, loc).slice = acqhdr.idx.slice;

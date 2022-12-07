@@ -59,7 +59,7 @@ namespace Gadgetron
             size_t S = data.get_size(5);
             size_t LOC = data.get_size(6);
 
-            matrix_size = header.encoding.front().reconSpace.matrixSize;
+            matrix_size = header.encoding.front().encodedSpace.matrixSize;
             hoNFFT_plan<float, 2> nufft = hoNFFT_plan(vector_td<size_t, 2>(matrix_size.x, matrix_size.y), gridding_os.value(), kernel_width.value());
             // NFFT_prep_mode mode=NFFT_prep_mode::NC2C;
 
@@ -133,9 +133,9 @@ namespace Gadgetron
                         imarray.headers_(n, s, loc).matrix_size[0] = matrix_size.x;
                         imarray.headers_(n, s, loc).matrix_size[1] = matrix_size.y;
                         imarray.headers_(n, s, loc).matrix_size[2] = matrix_size.z;
-                        imarray.headers_(n, s, loc).field_of_view[0] = dbuff.sampling_.recon_FOV_[0];
-                        imarray.headers_(n, s, loc).field_of_view[1] = dbuff.sampling_.recon_FOV_[1];
-                        imarray.headers_(n, s, loc).field_of_view[2] = dbuff.sampling_.recon_FOV_[2];
+                        imarray.headers_(n, s, loc).field_of_view[0] = dbuff.sampling_.encoded_FOV_[0];
+                        imarray.headers_(n, s, loc).field_of_view[1] = dbuff.sampling_.encoded_FOV_[1];
+                        imarray.headers_(n, s, loc).field_of_view[2] = dbuff.sampling_.encoded_FOV_[2];
                         imarray.headers_(n, s, loc).channels = 1;
                         imarray.headers_(n, s, loc).average = acqhdr.idx.average;
                         imarray.headers_(n, s, loc).slice = acqhdr.idx.slice;

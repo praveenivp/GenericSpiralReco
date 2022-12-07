@@ -248,7 +248,7 @@ namespace Gadgetron
         // make the first dim 2 to 3
         auto & kTraj2D=dbuff.trajectory_.value();
         auto & dcw2D=dbuff.density_.value();
-        auto mat_sz = MeasHeader.encoding[0].reconSpace.matrixSize;
+        auto mat_sz = MeasHeader.encoding[0].encodedSpace.matrixSize;
         auto ktraj3D = Gadgetron::hoNDArray<float>(3, kTraj2D.get_size(1), kTraj2D.get_size(2), mat_sz.z);
         auto dcw3D = Gadgetron::hoNDArray<float>(dcw2D.get_size(0), dcw2D.get_size(1), mat_sz.z);
 
