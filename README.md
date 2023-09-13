@@ -16,10 +16,10 @@ Please refer to [piv_GadgetronSpiral.xml](config/piv_GadgetronSpiral.xml). The f
 +--------------------+     +----------------------------+    +----------------------------+   +---------------------------+
 
 ```
-### Dependentcies
+### Dependencies
     - Gadgetron (build and runtime)
     - BART (in runtime for pics reco)
-    - [siemens_to_ismrmrd] (https://github.com/ismrmrd/siemens_to_ismrmrd.git)
+    - [siemens_to_ismrmrd](https://github.com/ismrmrd/siemens_to_ismrmrd.git)
 
 ## Demo 
 
@@ -94,5 +94,5 @@ scp <libfile.so> gadgetron@10.41.xx.xx:/home/gadgetron/Documents/packages/gadget
 - []  Mosiacing doesn't work with reference image
 
 ## Author
-Praveen Iyyappan Valsala
-Modified version of [Spiral design packages](https://github.com/mrphysics-bonn/spiraltraj.git) is from Philipp Ehses (philipp.ehses@dzne.de)
+* Praveen Iyyappan Valsala
+* Modified version of [Spiral design packages](https://github.com/mrphysics-bonn/spiraltraj.git) is from Philipp Ehses (philipp.ehses@dzne.de)
