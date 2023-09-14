@@ -19,29 +19,41 @@ Please refer to [piv_GadgetronSpiral.xml](config/piv_GadgetronSpiral.xml). The f
 ### Dependencies
 - Gadgetron (build and runtime)
 - BART (in runtime for pics reco)
-- [siemens_to_ismrmrd](https://github.com/ismrmrd/siemens_to_ismrmrd.git)
+- [ismrmrdviewer](https://github.com/ismrmrd/ismrmrdviewer.git)  (Optional)
+- [siemens_to_ismrmrd](https://github.com/ismrmrd/siemens_to_ismrmrd.git)  (Optional)
 
 ## Demo 
 
 ### Building
 ```
+git clone https://github.com/praveenivp/GenericSpiralReco.git
+cd GenericSpiralReco && mkdir build && cd build
 cmake -DCMAKE_BUILD_TYPE=Debug -GNinja ..
 ninja
 ```
 Make sure the output dll is visible to gadgetron. 
 
-### Create siemens data to MRD format
+
+### Reconstruction
+Start gadgetron and feed it with data. First start get simple recon without BART. 
+```
+gadgetron_ismrmrd_client -f testData/raw3D_R3.h5 -C config/simpleReco.xml -o im_alias.h5 
+ismrmrdviewer im_alias.h5
+```
+If BART is on path, you can perform CG-SENSE reconstruction with `ecalib` and `pics`.
+```
+gadgetron_ismrmrd_client -f testData/raw3D_R3.h5 -C config/piv_GadgetronSpiral.xml -o im_sense.h5 
+ismrmrdviewer im_sense.h5
+```
+
+### troubleshooting
+#### Create siemens data to MRD format
+siemens raw data is already converted to MRD format!
 ```
 siemens_to_ismrmrd -x parameter_maps/IsmrmrdParameterMap_peSpiral_VE11E.xsl -m parameter_maps/IsmrmrdParameterMap_peSpiral_VE11E.xml -f peSpiral.dat -z 1 -o data_z1.h5
 ismrmrdviewer data_z1.h5 
 ```
-### reconstruction
-Start gadgetron and feed it with data.
-```
-gadgetron_ismrmrd_client -f testData/data_z1.h5 -C config/piv_GadgetronSpiral.xml 
-```
-
-#### BART troubleshooting
+##### BART 
 Make sure you enable `calc_csm` and `do_pics` flags to get all necessary files in the `output folder` for pics.
 ```
 bart pics -i 10  -p DCF -t Traj coil_data sensCFL pics_reco

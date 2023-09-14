@@ -4,13 +4,7 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 
     <!--
-        Gadgetron generic recon chain for 2D and 3D cartesian sampling
-        Triggered by repetition
-        Recon N is contrast and S is set
-        Author: Hui Xue
-        National Heart, Lung and Blood Institute, National Institutes of Health
-        10 Center Drive, Bethesda, MD 20814, USA
-        Email: hui.xue@nih.gov
+            Spiral reconstruction chain with parallel imaging.
     -->
 
     <!-- reader -->
@@ -43,7 +37,7 @@
    
     <gadget>
         <name>BucketToBuffer</name>
-        <dll>refFFT</dll>
+        <dll>MySpiralReco</dll>
         <classname>MyBucketToBufferGadget</classname>
         <property><name>N_dimension</name><value>repetition</value></property>
         <property><name>S_dimension</name><value>average</value></property>
@@ -55,15 +49,15 @@
 
     <gadget>
         <name>RemoveRefOSGadget</name>
-        <dll>refFFT</dll>
+        <dll>MySpiralReco</dll>
         <classname>RemoveRefOSGadget</classname>
     </gadget>
 
     <gadget>
         <name>getCoilSens</name>
-        <dll>refFFT</dll>
+        <dll>MySpiralReco</dll>
         <classname>RefRecoGadget</classname>
-        <property><name>output_folder</name><value>/media/sf_VM_Shared/gadgetronstuff/</value></property>
+        <property><name>output_folder</name><value>/tmp/</value></property>
         <property><name>ecalib_settings</name><value>-m 2 -k 4 -r 24</value></property>
         <property><name>calc_csm</name><value>true</value></property>
         <property><name>export_reference_image</name><value>true</value></property>
@@ -73,7 +67,7 @@
 
      <gadget>
         <name>AddTraj</name>
-        <dll>refFFT</dll>
+        <dll>MySpiralReco</dll>
         <classname>AddTrajInfoGadget</classname>
         <property><name>grad_delay</name><value>2.0</value></property>
         <property><name>calc_3D_traj</name><value>true</value></property>
@@ -82,14 +76,14 @@
    
     <gadget>
         <name>spiralGridding</name>
-        <dll>refFFT</dll>
+        <dll>MySpiralReco</dll>
         <classname>SpiralGriddingGadget</classname>
         <property><name>kernel_width</name><value>5.5</value></property>
         <property><name>gridding_os</name><value>1.5</value></property>
         <property><name>use_calculated_csm</name><value>true</value></property>
         <property><name>perform_pics</name><value>true</value></property>
         <property><name>pics_settings</name><value>-i 10 -l2 -r 1e-2 </value></property>
-        <property><name>output_folder</name><value>/media/sf_VM_Shared/gadgetronstuff/</value></property>
+        <property><name>output_folder</name><value>/tmp/</value></property>
     </gadget>
 
 
