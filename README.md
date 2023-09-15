@@ -34,7 +34,7 @@ ninja
 Make sure the output dll is visible to gadgetron.
  
 ### Reconstruction
-Start gadgetron and feed it with data. First start get simple recon without BART. 
+Start gadgetron and feed it with data. First, let us perform a simple reconstruction without BART. 
 ```
 gadgetron_ismrmrd_client -f testData/raw3D_R3.h5 -C config/SimpleReco.xml -o im_alias.h5 
 ismrmrdviewer im_alias.h5 &
@@ -49,8 +49,8 @@ Aliased image, GRE reference image from auto calibation data and CG-SENSE recons
 ![Reults from the above test](./testData/results3D.png)
 
 ### troubleshooting
-#### Create siemens data to MRD format
-siemens raw data is already converted to MRD format!
+#### Converting siemens data to MRD format
+siemens raw data is already converted to MRD format using these commands!
 ```
 siemens_to_ismrmrd -x parameter_maps/IsmrmrdParameterMap_peSpiral_VE11E.xsl -m parameter_maps/IsmrmrdParameterMap_peSpiral_VE11E.xml -f peSpiral.dat -z 1 -o data_z1.h5
 ismrmrdviewer data_z1.h5 
@@ -101,11 +101,11 @@ scp <libfile.so> gadgetron@10.41.xx.xx:/home/gadgetron/Documents/packages/gadget
 - [x]  gridding reoconstruction
 - [x]  coil combination with calculated sensitivity
 - [x]  CG-SENSE reconstruction
-- []  remove CFL_IO2.xx 
-- []  multi-slice reco fix
-- []  GIRF correction
-- []  coil maps calculation not starting immediately
-- []  Mosiacing doesn't work with reference image
+- [ ]  remove CFL_IO2.xx 
+- [ ]  multi-slice reco fix
+- [ ]  GIRF correction
+- [ ]  coil maps calculation not starting immediately
+- [ ]  Mosiacing doesn't work with reference image
 
 ## Author
 * Praveen Iyyappan Valsala
