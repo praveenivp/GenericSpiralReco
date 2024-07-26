@@ -19,7 +19,7 @@ namespace Gadgetron{
       GADGET_PROPERTY(calc_csm, bool, "flag to enable bart coil sens calculation", true);
       GADGET_PROPERTY(export_reference_image, bool, "export coil combined image from reference data", true);
 
-      GADGET_PROPERTY(ecalib_settings, std::string, "Setting for ecalib", "-m 2 -k 4 -r 24");
+      GADGET_PROPERTY(ecalib_settings, std::string, "ecalib call", "ecalib -m2 -k4 -r24");
       GADGET_PROPERTY(output_folder, std::string, "path of output folder for calib data and coil sens cfl files", "/tmp/gadgetron/");
 
 

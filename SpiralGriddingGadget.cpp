@@ -214,7 +214,7 @@ namespace Gadgetron
                             // bart pics -i 10 -l2 -r 1e-2 -p DCF  -t Traj coil_data sensCFL out1
                             std::stringstream ss;
                             ss.clear();
-                            ss << "bart pics  " << pics_settings.value() << " ";
+                            ss << "bart " << pics_settings.value() << " ";
                             ss << "-p"
                                << " " << DCF_filename << " ";
                             ss << "-t"

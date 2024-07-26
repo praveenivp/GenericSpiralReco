@@ -30,7 +30,7 @@ namespace Gadgetron{
 
     GADGET_PROPERTY(output_folder, std::string, "path of output folder for traj and pics", "/tmp/gadgetron/");
     GADGET_PROPERTY(perform_pics, bool,"Perform bart pics recon", false);
-    GADGET_PROPERTY(pics_settings, std::string, "setting for pics toool", "-i 10 -l2 -r 1e-2");
+    GADGET_PROPERTY(pics_settings, std::string, "pics call", "pics -i 10 -l2 -r 1e-2");
     GADGET_PROPERTY(pics_scale_factor,float,"additional scaling of output image" , 1e3);
 
 		

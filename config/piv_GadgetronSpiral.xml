@@ -58,7 +58,7 @@
         <dll>MySpiralReco</dll>
         <classname>RefRecoGadget</classname>
         <property><name>output_folder</name><value>/tmp/</value></property>
-        <property><name>ecalib_settings</name><value>-m 2 -k 4 -r 24</value></property>
+        <property><name>ecalib_settings</name><value>ecalib -m 2 -k 4 -r 24</value></property>
         <property><name>calc_csm</name><value>true</value></property>
         <property><name>export_reference_image</name><value>true</value></property>
     </gadget>
@@ -82,7 +82,7 @@
         <property><name>gridding_os</name><value>1.5</value></property>
         <property><name>use_calculated_csm</name><value>true</value></property>
         <property><name>perform_pics</name><value>true</value></property>
-        <property><name>pics_settings</name><value>-i 10 -l2 -r 1e-2 </value></property>
+        <property><name>pics_settings</name><value>pics -i 10 -l2 -r 1e-2 </value></property>
         <property><name>output_folder</name><value>/tmp/</value></property>
     </gadget>
 

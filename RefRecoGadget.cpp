@@ -56,7 +56,7 @@ namespace Gadgetron
                 CFL_IO::hoNDArray2CFL<complex_float_t>(calib_filename, buff_pad);
                 std::stringstream ss;
                 ss.clear();
-                ss << "bart ecalib " << ecalib_settings.value()<< " ";
+                ss << "bart " << ecalib_settings.value()<< " ";
                 ss << calib_filename << " " << sens_filename << " ";
                 std::string bart_cmd = ss.str();
                 GDEBUG_STREAM("Executing : " << bart_cmd.c_str());
