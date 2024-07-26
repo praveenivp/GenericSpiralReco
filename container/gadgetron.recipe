@@ -1,0 +1,129 @@
+Bootstrap:docker
+From:nvidia/cuda:11.8.0-devel-ubuntu22.04
+
+%pre
+    export PATH=$PATH:/usr/local/cuda/bin
+
+%post
+    export DEBIAN_FRONTEND=noninteractive
+    apt -y  update
+    apt -y upgrade
+    #set environment locale
+    apt install -y locales && localedef -i en_US -c -f UTF-8 -A /usr/share/locale/locale.alias en_US.UTF-8
+    apt install -y pkg-config build-essential
+    apt install -y git libomp-dev libblas-dev liblapack-dev liblapacke-dev cmake libpugixml-dev libfftw3-dev libarmadillo-dev libhdf5-dev python3-dev python3-pip librocksdb-dev libxml2-dev wget libxslt1-dev libgtest-dev libgmock-dev g++ ninja-build htop nano libboost-dev libcurl4-openssl-dev
+
+    apt install -y librange-v3-dev libboost-all-dev nlohmann-json3-dev libismrmrd-dev
+    apt install -y python3-pip python3-full golang
+    apt install -y python3-matplotlib python3-numpy python3-pydicom python3-scipy python3-sympy python3-tk
+
+    # This could create issue!
+    # pip3 install --upgrade pip
+        pip3 install \
+        Cython \
+        matplotlib \
+        numpy \
+        opencv_python \
+        pydicom \
+        Pillow \
+        pyxb \
+        scikit-image \
+        scikit-learn \
+        scipy \
+        sympy \
+        tk-tools \
+        junitparser
+
+    #python gadget support
+    pip3 install git+https://github.com/gadgetron/gadgetron-python.git
+
+
+    mkdir -p /packages && cd /packages
+
+    #install datelib
+    wget https://github.com/HowardHinnant/date/archive/refs/tags/v3.0.1.tar.gz -O libdate.tar.gz
+    tar -xf libdate.tar.gz
+    cp -r date-3.0.1/include/* /usr/include/
+
+    #install newer ismrmrd
+    wget https://github.com/ismrmrd/ismrmrd/archive/refs/tags/v1.13.7.tar.gz -O ismrmrd.tar.gz
+    tar -xf ismrmrd.tar.gz
+    cd ismrmrd-1.13.7 && mkdir build && cd build
+    cmake -GNinja -DCMAKE_BUILD_TYPE=Release ..
+    ninja
+    ninja install
+
+    #install bart
+    cd /opt
+    apt install -y libpng-dev libblas-dev liblapacke-dev libfftw3-dev
+    # libopenblas-dev is slighly slower in `bart bench`
+    wget https://github.com/mrirecon/bart/archive/refs/tags/v0.9.00.tar.gz -O bart.tar.gz
+    tar -xf bart.tar.gz && mv bart-0.9.00 bart && rm bart.tar.gz
+    cd bart
+    #echo "OPENBLAS=1" > Makefile.local
+    echo "CUDA=1" >> Makefile.local
+    echo "CUDA_BASE=\"/usr/local/cuda\"" >> Makefile.local
+    echo "CUDA_LIB= \"lib64\"" >> Makefile.local
+    make
+
+
+    #compile and install gadgetron
+    cd /opt
+    git clone https://github.com/gadgetron/gadgetron.git
+    cd gadgetron/
+    git reset --hard dedb733d741
+    mkdir build
+    cd build/
+    cmake -GNinja -DCMAKE_BUILD_TYPE=Release -DCUDA_COMPUTE_CAPABILITY=ALL -DUSE_CUDA=ON ..
+    ninja
+    ninja install
+
+
+    #mrd storage server
+    cd /opt
+    wget https://github.com/ismrmrd/mrd-storage-server/archive/refs/tags/v0.0.12.tar.gz
+    tar -xf v0.0.12.tar.gz && rm v0.0.12.tar.gz
+    cd mrd-storage-server-0.0.12
+    export GOPATH=/usr/local/go
+    go build
+    go install
+
+    #siemens to ismmrd
+    cd /opt
+    wget https://github.com/ismrmrd/siemens_to_ismrmrd/archive/refs/tags/v1.2.11.tar.gz -O siemens_ismrmrd.tar.gz
+    tar -xf siemens_ismrmrd.tar.gz
+    cd siemens_to_ismrmrd-1.2.11  && mkdir build && cd build
+    cmake -GNinja -DCMAKE_BUILD_TYPE=Release ..
+    ninja
+    ninja install
+
+    #ismrmrdviewer (breaks)
+    #apt install -y cmake pkg-config mesa-utils libglu1-mesa-dev freeglut3-dev mesa-common-dev libglew-dev libglfw3-dev libglm-dev libao-dev libmpg123-dev
+    #pip3 install git+https://github.com/pdaude/ismrmrdviewer.git
+    #pip3 install numpy --upgrade
+
+
+%environment
+    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib64/
+    export XDG_RUNTIME_DIR=""
+    export LANG=en_US.UTF-8
+    export LANGUAGE=en_US.UTF-8
+    export LC_COLLATE=C
+    export LC_CTYPE=en_US.UTF-8
+
+    # paths for ismrmrd and gadgetron
+    export GADGETRON_HOME=/usr/local
+    export ISMRMRD_HOME=/usr/local
+    export PATH=$PATH:$GADGETRON_HOME/bin:$ISMRMRD_HOME/bin
+    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$GADGETRON_HOME/lib:$ISMRMRD_HOME/lib
+
+    #BART
+    export TOOLBOX_PATH=/opt/bart/
+    export PATH=$TOOLBOX_PATH:$PATH
+
+    #mrdserver to path
+    export GOPATH="/usr/local/go"
+    export PATH=$PATH:/usr/local/go/bin
+
+%help
+    I'm a gadgetron (>v4.1 : dedb733d74) and bart(v0.9) ubuntu 22.04 container with cuda 11.6
