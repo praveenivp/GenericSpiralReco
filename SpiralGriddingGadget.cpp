@@ -228,7 +228,7 @@ namespace Gadgetron
                             hoNDArray<std::complex<float>> output = hoNDArray<std::complex<float>>(img_dims, &imarray.data_(0, 0, 0, 0, n, s, loc));
                             uint32_t nVoxels = (img_dims[2] > 0) ? img_dims[0] * img_dims[1] * img_dims[2] : img_dims[0] * img_dims[1];
                             std::copy(pics_im.begin(), pics_im.begin() + nVoxels, output.begin());
-
+                            coil_images = permute(coil_images, {1, 0, 2});
                             output*=pics_scale_factor.value(); //auto scaling gadget sucks!
 
                         } 
